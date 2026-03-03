@@ -7,3 +7,9 @@ outputs_*
 outputs
 *.egg-info/*
 build
+.venv
+outputs
+*.jpg
+*.png
+custom_weights
+*.pth

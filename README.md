@@ -61,6 +61,19 @@ SIFT and DeDoDe
 </details>
 
 ## Install
+### DeDoDe-LightGlue only (minimal dependencies, no submodules)
+This setup installs only dependencies required for `dedode-lightglue`.
+```bash
+git clone https://github.com/gmberton/vismatch
+cd vismatch
+pip install -e .
+# or
+uv pip install -e .
+```
+
+`dedode-lightglue` uses Kornia and does not require git submodules.
+
+### PyPI install
 vismatch can be installed directly from PyPi using pip or uv (faster)
 ```bash
 pip install vismatch
@@ -68,14 +81,17 @@ pip install vismatch
 uv pip install vismatch
 ```
 
-or, for development, clone this git repo and install with:
+### Full development setup (all models)
+For all models and their full dependency set:
 
 ```bash
-# Clone recursively
+# Clone recursively (includes submodules used by some models)
 git clone --recursive https://github.com/gmberton/vismatch
 cd vismatch
 
-# install packages
+# install full dependencies
+pip install -r requirements-full.txt
+# then install package
 pip install .
 # or, if you want an editable install for dev work
 pip install -e . 

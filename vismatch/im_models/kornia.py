@@ -1,8 +1,9 @@
+from pathlib import Path
 from kornia.feature import DeDoDe, LightGlue
 import torch
 import kornia
 
-from vismatch import get_version, BaseMatcher
+from vismatch import get_version, BaseMatcher, WEIGHTS_DIR
 
 
 class DeDoDeLightGlue(BaseMatcher):
@@ -14,6 +15,7 @@ class DeDoDeLightGlue(BaseMatcher):
         device="cpu",
         detector_weights="L-C4-v2",
         desc_weights="B-upright",
+        weights_dir: str | Path | None = None,
         **kwargs,
     ):
         super().__init__(device, **kwargs)
@@ -29,6 +31,8 @@ class DeDoDeLightGlue(BaseMatcher):
         assert desc_weights in DeDoDeLightGlue.descriptor_options, (
             f"Invalid descriptor weights passed ({desc_weights}). Choose from {DeDoDeLightGlue.descriptor_options}"
         )
+
+        self._ensure_vismatch_weights_path(weights_dir)
 
         desc_type = desc_weights[0].lower()
         self.model = DeDoDe.from_pretrained(
@@ -70,3 +74,23 @@ class DeDoDeLightGlue(BaseMatcher):
         mkpts1 = kpts1.squeeze()[matching_idxs[:, 1]]
 
         return mkpts0, mkpts1, kpts0[0], kpts1[0], desc0[0], desc1[0]
+
+    @staticmethod
+    def _ensure_vismatch_weights_path(weights_dir: str | Path | None = None) -> None:
+        """Route torch hub checkpoints under vismatch/model_weights for this matcher.
+
+        Kornia's DeDoDe and LightGlue both use torch.hub.load_state_dict_from_url, which
+        downloads to torch.hub.get_dir()/checkpoints. If the current hub directory is not
+        vismatch-scoped, override it for this model.
+        """
+        if weights_dir is not None:
+            explicit_hub_dir = Path(weights_dir).expanduser().resolve()
+            explicit_hub_dir.mkdir(parents=True, exist_ok=True)
+            torch.hub.set_dir(str(explicit_hub_dir))
+            return
+
+        current_hub_dir = Path(torch.hub.get_dir()).resolve()
+        if "vismatch" not in str(current_hub_dir).lower():
+            vismatch_hub_dir = WEIGHTS_DIR.joinpath("torch_hub")
+            vismatch_hub_dir.mkdir(parents=True, exist_ok=True)
+            torch.hub.set_dir(str(vismatch_hub_dir))
