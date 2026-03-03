@@ -41,10 +41,7 @@ HuggingFace = "https://huggingface.co/vismatch"
 
 
 [project.optional-dependencies]
-omniglue = ["tensorflow"]
-sphereglue = ["torch-geometric", "torch-cluster"]
-zippypoint = ["tensorflow>=2.15,<2.16", "keras<3", "larq>=0.12.2"]
-all = ["vismatch[omniglue, sphereglue, zippypoint]"]
+all = []
 
 [tool.setuptools.dynamic]
 version = {attr = "vismatch.__version__"}
@@ -58,9 +55,6 @@ exclude = ["vismatch/third_party"]
 
 [tool.ruff.lint]
 ignore = ["E402", "E501"]
-
-[tool.uv.extra-build-dependencies]
-torch-cluster = ["torch"]
 
 [tool.setuptools]
 py-modules = ["vismatch_match", "vismatch_extract", "vismatch_test"]
