@@ -66,6 +66,12 @@ def parse_args():
     parser.add_argument(
         "--single-matcher-json", type=str, metavar="MODEL", help="run single matcher and output JSON (internal use)"
     )
+    parser.add_argument(
+        "--weights-dir",
+        type=Path,
+        default=None,
+        help="custom torch hub weights cache path for dedode-lightglue",
+    )
     args = parser.parse_args()
 
     for attr in ("img_size0", "img_size1"):
@@ -84,7 +90,7 @@ def parse_args():
     return args
 
 
-def run_single_matcher(matcher_name, img_size0, img_size1, device, num_runs):
+def run_single_matcher(matcher_name, img_size0, img_size1, device, num_runs, weights_dir=None):
     """Run a single matcher test and return results as dict."""
     warnings.filterwarnings("ignore")
     os.environ["PYTHONWARNINGS"] = "ignore"
@@ -92,7 +98,7 @@ def run_single_matcher(matcher_name, img_size0, img_size1, device, num_runs):
     f_stdout, f_stderr = StringIO(), StringIO()
     try:
         with redirect_stdout(f_stdout), redirect_stderr(f_stderr):
-            matcher = get_matcher(matcher_name, device=device)
+            matcher = get_matcher(matcher_name, device=device, weights_dir=weights_dir)
             avg_runtime, error = benchmark_and_test(
                 matcher, img_size0=img_size0, img_size1=img_size1, num_runs=num_runs
             )
@@ -149,7 +155,7 @@ def main():
     # Handle single matcher mode (for subprocess calls)
     if args.single_matcher_json:
         result = run_single_matcher(
-            args.single_matcher_json, args.img_size0, args.img_size1, args.device, args.num_runs
+            args.single_matcher_json, args.img_size0, args.img_size1, args.device, args.num_runs, args.weights_dir
         )
         print(json.dumps(result))
         return
@@ -184,6 +190,8 @@ def main():
                 args.device,
             ]
         )
+        if args.weights_dir is not None:
+            cmd.extend(["--weights-dir", str(args.weights_dir)])
 
         # Timeout of 10 minutes because Dust3r is slow to download
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)

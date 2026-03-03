@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument(
         "--matcher",
         type=str,
-        default="superpoint-lightglue",
+        default="dedode-lightglue",
         choices=available_models,
         metavar="MODEL",
         help="matcher to use (default: %(default)s). See list below",
@@ -71,6 +71,12 @@ def parse_args():
     parser.add_argument(
         "--out-dir", type=Path, default=None, help="path where outputs are saved (default: outputs/{matcher})"
     )
+    parser.add_argument(
+        "--weights-dir",
+        type=Path,
+        default=None,
+        help="custom torch hub weights cache path for dedode-lightglue (default: vismatch/model_weights/torch_hub)",
+    )
 
     args = parser.parse_args()
 
@@ -86,7 +92,12 @@ def main():
     args.out_dir.mkdir(exist_ok=True, parents=True)
 
     # Choose a matcher
-    matcher = get_matcher(args.matcher, device=args.device, max_num_keypoints=args.n_kpts)
+    matcher = get_matcher(
+        args.matcher,
+        device=args.device,
+        max_num_keypoints=args.n_kpts,
+        weights_dir=args.weights_dir,
+    )
     print(f"Using matcher: {args.matcher} on device: {args.device}")
     print("=" * 80)
 
